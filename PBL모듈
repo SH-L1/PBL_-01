@@ -1,0 +1,59 @@
+import java.io.*;
+import java.util.*;
+
+/**
+ * Write a description of class AppData here.
+ *
+ * @author (your name)
+ * @version (a version number or a date)
+ */
+
+public class AppData
+{
+    public static void main(String[] args)
+    {
+        HashMap<String, Integer> student_grade = new HashMap<>();
+        
+        try {
+            File file = new File("C:\\temp\\inputData2024.txt");
+            FileReader filereader = new FileReader(file);
+            Scanner scanner = new Scanner(filereader);
+            
+            while(true)
+            {
+                if(!(scanner.hasNextLine()))
+                {
+                    break;   
+                }
+                
+                String[] data = scanner.nextLine().split(" ");
+                String name = data[0];
+                Integer grade = Integer.parseInt(data[1]);
+                student_grade.put(name, grade);
+            }
+            
+            scanner.close();
+            
+            int total_grade = 0;
+            
+            Iterator<String> it = student_grade.keySet().iterator();
+            while(it.hasNext())
+            {
+                String key = it.next();
+                total_grade += student_grade.get(key);
+            }
+            
+            float average_grade =
+            (float)total_grade / (float)student_grade.size();
+            
+            System.out.println("------ 계산 결과 ------");
+            System.out.println("총점 : " + total_grade);
+            System.out.println("평균 : " + average_grade);
+        }
+        catch(IOException e)
+        {
+            System.out.println("입출력 오류 발생!");    
+        }
+    }
+    
+}
