@@ -10,26 +10,25 @@ import java.util.*;
  * - 학생들의 점수를 합산하고 총점 및 평균을 계산
  * - 학생들의 점수를 순위별로 정렬하여 출력
  * - 최고점 및 최저점 학생을 출력
- * 
+ *
  * @author (2023320015 정은비 2021320011 이규호 2021320021서유정 2020635040 임성훈)
  * @version (2024.10.23)
  */
-
 public class Calculator {
     public static void main(String[] args) {
         HashMap<String, Integer> student_grade = new HashMap<>();
         
-        boolean isValid = input(student_grade);
+        inputFile(student_grade);
 
-        if (!isValid || student_grade.isEmpty()) {
+        if (student_grade.isEmpty()) {
             return;
+        } else {
+            int total_grade = calculateTotalScore(student_grade);
+            output(student_grade, total_grade);
         }
-
-        int total_grade = calculate(student_grade);
-        output(student_grade, total_grade);
     }
     
-    public static boolean input(HashMap<String, Integer> student_grade) {
+    public static void inputFile(HashMap<String, Integer> student_grade) {
         try {
             File file = new File("C:\\temp\\inputData2024.txt");
             FileReader filereader = new FileReader(file);
@@ -37,103 +36,79 @@ public class Calculator {
             
             if (!scanner.hasNextLine()) {
                 System.out.println("파일의 내용이 존재하지 않습니다.");
-                scanner.close();
-                filereader.close();
                 
-                return false;
+                return;
             }
             
             while (scanner.hasNextLine()) {
                 String words = scanner.nextLine();
-                String[] data = words.split(" ");
                 
-                if (data.length != 2) {
-                    System.out.println("이름과 점수 사이에 띄어쓰기가 없거나 잘못된 형식입니다.");
-                    scanner.close();
-                    filereader.close();
-                    
-                    return false;
-                }
+                try {
+                    String[] data = words.split(" ");
                 
-                String name = data[0];
-                
-                boolean isThereSpecialInName = false;
-                
-                for (int i = 0; i < name.length(); i++) {
-                    char ch = name.charAt(i);
-                    if (!Character.isLetter(ch) && ch != ' ') {
-                        isThereSpecialInName = true;
+                    if (data.length != 2) {
+                        System.out.println("이름과 점수 사이에 띄어쓰기가 없거나 잘못된 형식입니다.");
                         
                         break;
                     }
-                }
-                
-                if (isThereSpecialInName) {
-                    System.out.println("이름에 특수 문자가 포함되어 있습니다.");
-                    scanner.close();
-                    filereader.close();
                     
-                    return false;
-                }
-                
-                String gradeStr = data[1];
-                
-                boolean isThereCharInGrade = false;
-                
-                for (int i = 0; i < gradeStr.length(); i++) {
-                    if (!Character.isDigit(gradeStr.charAt(i))) {
-                        isThereCharInGrade = true;
+                    String name = data[0];
+                    String gradeStr = data[1];
+
+                    boolean isThereSpecialInName = false;
+                    for (int i = 0; i < name.length(); i++) {
+                        char ch = name.charAt(i);
+                        
+                        if (!Character.isLetter(ch) && ch != ' ') {
+                            isThereSpecialInName = true;
+                            
+                            break;
+                        }
+                    }
+                    
+                    if (isThereSpecialInName) {
+                        System.out.println("이름에 특수 문자 혹은 숫자가 포함되어 있습니다.");
+                        
                         break;
                     }
-                }
-                
-                if (isThereCharInGrade) {
-                    System.out.println("점수에는 숫자만 기입할 수 있습니다.");
-                    scanner.close();
-                    filereader.close();
+
+                    try {
+                        Integer grade = Integer.parseInt(gradeStr);
+                        student_grade.put(name, grade);
+                    } catch (NumberFormatException e) {
+                        System.out.println("점수에는 숫자만 기입할 수 있습니다.");
+                        
+                        break;
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("입력 처리 중 오류 발생");
                     
-                    return false;
-                } else {
-                    Integer grade = Integer.parseInt(gradeStr);
-                    student_grade.put(name, grade);
+                    break;
                 }
             }
-            
             scanner.close();
             filereader.close();
-            
-            return true;
         } catch (IOException e) {
             System.out.println("입출력 오류 발생!");
-            
-            return false;
         }
     }
 
-    public static int calculate(HashMap<String, Integer> student_grade) {
+    public static int calculateTotalScore(HashMap<String, Integer> student_grade) {
         int total_grade = 0;
 
-        Iterator<String> iter = student_grade.keySet().iterator();
-        while (iter.hasNext()) {
-            String key = iter.next();
-            Integer value = student_grade.get(key);
+        for (Integer value : student_grade.values()) {
             total_grade += value;
         }
         
         return total_grade;
     }
-
-    public static void output(HashMap<String, Integer> student_grade, int total_grade) {
-        String topStudent = "";
-        String bottomStudent = "";
-        int maxScore = Integer.MIN_VALUE;
-        int minScore = Integer.MAX_VALUE;
-
+    
+    public static ArrayList<String> calculateRanking(HashMap<String, Integer> student_grade) {
         ArrayList<String> sortedStudents = new ArrayList<>();
         List<String> keys = new ArrayList<>(student_grade.keySet());
     
-        for (int i = 0; i < keys.size(); i++) {
-            String key = keys.get(i);
+        for (String key : keys) {
             int score = student_grade.get(key);
             int index = 0;
         
@@ -142,28 +117,20 @@ public class Calculator {
             }
         
             sortedStudents.add(index, key);
-
-            if (score > maxScore) {
-                maxScore = score;
-                topStudent = key;
-            }
-        
-            if (score < minScore) {
-                minScore = score;
-                bottomStudent = key;
-            }
         }
-    
+        
+        return sortedStudents;
+    }
+
+    public static void output(HashMap<String, Integer> student_grade, int total_grade) {
+        ArrayList<String> sortedStudents = calculateRanking(student_grade);
+        
         System.out.println("------ 학생 순위 ------");
     
         for (int i = 0; i < sortedStudents.size(); i++) {
             String student = sortedStudents.get(i);
             System.out.println((i + 1) + "등: " + student + " (점수: " + student_grade.get(student) + ")");
         }
-    
-        System.out.println();
-        System.out.println("1등 : " + topStudent);
-        System.out.println("꼴등 : " + bottomStudent);
         
         float average_grade = (float) total_grade / student_grade.size();
     
